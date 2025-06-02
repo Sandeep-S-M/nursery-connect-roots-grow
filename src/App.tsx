@@ -10,6 +10,7 @@ import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
 import Forum from "./pages/Forum";
 import PlantCalculator from "./pages/PlantCalculator";
+import ProfileDetail from "./pages/ProfileDetail";
 import NotFound from "./pages/NotFound";
 import VoiceAssistant from "./components/VoiceAssistant";
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/forum" element={<Forum />} />
             <Route path="/calculator" element={<PlantCalculator />} />
+            <Route path="/profiles/:userId" element={<ProfileDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <VoiceAssistant />

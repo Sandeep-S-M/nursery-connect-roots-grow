@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Home, ShoppingBag, MessageSquare, BarChart3, Users, Bell } from "lucide-react";
+import { Menu, X, Home, ShoppingBag, MessageSquare, BarChart3, Users, Bell, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,6 +12,7 @@ const Navigation = () => {
     { path: "/", label: "Home", icon: Home },
     { path: "/marketplace", label: "Marketplace", icon: ShoppingBag },
     { path: "/chat", label: "Messages", icon: MessageSquare, badge: 3 },
+    { path: "/calculator", label: "Plant Calculator", icon: Calculator },
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/forum", label: "Community", icon: Users },
   ];

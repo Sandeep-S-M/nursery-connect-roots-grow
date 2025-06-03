@@ -14,7 +14,7 @@ import ProfessionalCard from "@/components/ProfessionalCard";
 const Marketplace = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProfession, setSelectedProfession] = useState<string>("");
+  const [selectedProfession, setSelectedProfession] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<"products" | "professionals">("products");
 
   // Mock data for products
@@ -120,7 +120,7 @@ const Marketplace = () => {
   ];
 
   const filteredProfessionals = professionals.filter(prof => {
-    const matchesProfession = !selectedProfession || prof.profession === selectedProfession;
+    const matchesProfession = selectedProfession === "all" || prof.profession === selectedProfession;
     const matchesSearch = !searchQuery || 
       prof.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prof.profession.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -176,7 +176,7 @@ const Marketplace = () => {
                   <SelectValue placeholder="All Professions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Professions</SelectItem>
+                  <SelectItem value="all">All Professions</SelectItem>
                   <SelectItem value="Nursery Owner">Nursery Owner</SelectItem>
                   <SelectItem value="Gardener">Gardener</SelectItem>
                   <SelectItem value="Home Gardener">Home Gardener</SelectItem>

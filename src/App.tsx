@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import Forum from "./pages/Forum";
 import PlantCalculator from "./pages/PlantCalculator";
 import ProfileDetail from "./pages/ProfileDetail";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import VoiceAssistant from "./components/VoiceAssistant";
 
@@ -25,6 +27,8 @@ const App = () => (
         <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/dashboard" element={<Dashboard />} />

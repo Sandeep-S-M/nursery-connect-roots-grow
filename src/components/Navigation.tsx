@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Home, ShoppingBag, MessageSquare, BarChart3, Users, Bell, Calculator } from "lucide-react";
@@ -66,8 +67,12 @@ const Navigation = () => {
                 2
               </Badge>
             </Button>
-            <Button variant="outline">Login</Button>
-            <Button className="bg-green-600 hover:bg-green-700">Sign Up</Button>
+            <Link to="/login">
+              <Button variant="outline">Login</Button>
+            </Link>
+            <Link to="/signup">
+              <Button className="bg-green-600 hover:bg-green-700">Sign Up</Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -113,8 +118,12 @@ const Navigation = () => {
                 );
               })}
               <div className="pt-4 border-t border-gray-200 space-y-2">
-                <Button variant="outline" className="w-full">Login</Button>
-                <Button className="w-full bg-green-600 hover:bg-green-700">Sign Up</Button>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="outline" className="w-full">Login</Button>
+                </Link>
+                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full bg-green-600 hover:bg-green-700">Sign Up</Button>
+                </Link>
               </div>
             </div>
           </div>

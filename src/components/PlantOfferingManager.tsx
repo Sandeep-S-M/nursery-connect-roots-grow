@@ -6,8 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Upload, X, Image, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface MediaFile {
+  file: File;
+  preview: string;
+  type: 'image' | 'video';
+}
 
 interface Variety {
   casteName: string;
@@ -16,6 +22,8 @@ interface Variety {
   qualityAssurance: string;
   availabilityDays: number;
   quantityAvailable: number;
+  qualityPhotos: MediaFile[];
+  qualityVideos: MediaFile[];
 }
 
 interface PlantOffering {
@@ -35,7 +43,9 @@ const PlantOfferingManager = () => {
           plantAge: "",
           qualityAssurance: "",
           availabilityDays: 0,
-          quantityAvailable: 0
+          quantityAvailable: 0,
+          qualityPhotos: [],
+          qualityVideos: []
         }
       ]
     }
@@ -53,7 +63,9 @@ const PlantOfferingManager = () => {
             plantAge: "",
             qualityAssurance: "",
             availabilityDays: 0,
-            quantityAvailable: 0
+            quantityAvailable: 0,
+            qualityPhotos: [],
+            qualityVideos: []
           }
         ]
       }
@@ -72,7 +84,9 @@ const PlantOfferingManager = () => {
       plantAge: "",
       qualityAssurance: "",
       availabilityDays: 0,
-      quantityAvailable: 0
+      quantityAvailable: 0,
+      qualityPhotos: [],
+      qualityVideos: []
     });
     setOfferings(updatedOfferings);
   };
@@ -91,13 +105,99 @@ const PlantOfferingManager = () => {
     setOfferings(updatedOfferings);
   };
 
-  const updateVariety = (plantIndex: number, varietyIndex: number, field: keyof Variety, value: string | number) => {
+  const updateVariety = (plantIndex: number, varietyIndex: number, field: keyof Variety, value: string | number | MediaFile[]) => {
     const updatedOfferings = [...offerings];
     updatedOfferings[plantIndex].varieties[varietyIndex] = {
       ...updatedOfferings[plantIndex].varieties[varietyIndex],
       [field]: value
     };
     setOfferings(updatedOfferings);
+  };
+
+  const handleMediaUpload = (plantIndex: number, varietyIndex: number, files: FileList | null, mediaType: 'photos' | 'videos') => {
+    if (!files) return;
+
+    const newFiles: MediaFile[] = [];
+    const maxSizePhoto = 100 * 1024; // 100KB for photos
+    const maxSizeVideo = 10 * 1024 * 1024; // 10MB for videos
+
+    Array.from(files).forEach(file => {
+      // Validate file type
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      
+      if (mediaType === 'photos' && !isImage) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload image files only (.jpg, .jpeg, .png)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (mediaType === 'videos' && !isVideo) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload video files only (.mp4, .mov, .webm)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size
+      const maxSize = mediaType === 'photos' ? maxSizePhoto : maxSizeVideo;
+      if (file.size > maxSize) {
+        toast({
+          title: "File Too Large",
+          description: `${mediaType === 'photos' ? 'Photos' : 'Videos'} must be under ${mediaType === 'photos' ? '100KB' : '10MB'}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // For videos, we'd need to check duration on the client side
+      if (isVideo) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+          if (video.duration > 60) {
+            toast({
+              title: "Video Too Long",
+              description: "Videos must be 60 seconds or shorter",
+              variant: "destructive",
+            });
+            return;
+          }
+        };
+        video.src = URL.createObjectURL(file);
+      }
+
+      const preview = URL.createObjectURL(file);
+      newFiles.push({
+        file,
+        preview,
+        type: isImage ? 'image' : 'video'
+      });
+    });
+
+    if (newFiles.length > 0) {
+      const currentVariety = offerings[plantIndex].varieties[varietyIndex];
+      const fieldName = mediaType === 'photos' ? 'qualityPhotos' : 'qualityVideos';
+      const currentMedia = currentVariety[fieldName] as MediaFile[];
+      updateVariety(plantIndex, varietyIndex, fieldName, [...currentMedia, ...newFiles]);
+    }
+  };
+
+  const removeMedia = (plantIndex: number, varietyIndex: number, mediaIndex: number, mediaType: 'photos' | 'videos') => {
+    const currentVariety = offerings[plantIndex].varieties[varietyIndex];
+    const fieldName = mediaType === 'photos' ? 'qualityPhotos' : 'qualityVideos';
+    const currentMedia = currentVariety[fieldName] as MediaFile[];
+    
+    // Revoke the object URL to prevent memory leaks
+    URL.revokeObjectURL(currentMedia[mediaIndex].preview);
+    
+    const updatedMedia = currentMedia.filter((_, index) => index !== mediaIndex);
+    updateVariety(plantIndex, varietyIndex, fieldName, updatedMedia);
   };
 
   const saveOfferings = () => {
@@ -293,6 +393,108 @@ const PlantOfferingManager = () => {
                           onChange={(e) => updateVariety(plantIndex, varietyIndex, 'qualityAssurance', e.target.value)}
                           className="mt-1"
                         />
+                      </div>
+
+                      {/* Media Upload Section */}
+                      <div className="md:col-span-2 lg:col-span-3 space-y-4 border-t pt-4">
+                        <h5 className="font-medium text-green-700">Quality Assurance Media</h5>
+                        
+                        {/* Photo Upload */}
+                        <div>
+                          <Label>Upload Quality Assurance Photos</Label>
+                          <p className="text-xs text-gray-500 mb-2">Max 100KB per photo. Formats: .jpg, .jpeg, .png</p>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => handleMediaUpload(plantIndex, varietyIndex, e.target.files, 'photos')}
+                              className="hidden"
+                              id={`photo-upload-${plantIndex}-${varietyIndex}`}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => document.getElementById(`photo-upload-${plantIndex}-${varietyIndex}`)?.click()}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload Photos
+                            </Button>
+                          </div>
+                          
+                          {/* Photo Previews */}
+                          {variety.qualityPhotos.length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                              {variety.qualityPhotos.map((photo, photoIndex) => (
+                                <div key={photoIndex} className="relative group">
+                                  <img
+                                    src={photo.preview}
+                                    alt={`Quality photo ${photoIndex + 1}`}
+                                    className="w-full h-20 object-cover rounded border"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeMedia(plantIndex, varietyIndex, photoIndex, 'photos')}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Video Upload */}
+                        <div>
+                          <Label>Upload Quality Assurance Videos</Label>
+                          <p className="text-xs text-gray-500 mb-2">Max 60 seconds, 10MB per video. Formats: .mp4, .mov, .webm</p>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="file"
+                              accept="video/*"
+                              multiple
+                              onChange={(e) => handleMediaUpload(plantIndex, varietyIndex, e.target.files, 'videos')}
+                              className="hidden"
+                              id={`video-upload-${plantIndex}-${varietyIndex}`}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => document.getElementById(`video-upload-${plantIndex}-${varietyIndex}`)?.click()}
+                            >
+                              <Video className="h-4 w-4 mr-2" />
+                              Upload Videos
+                            </Button>
+                          </div>
+                          
+                          {/* Video Previews */}
+                          {variety.qualityVideos.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                              {variety.qualityVideos.map((video, videoIndex) => (
+                                <div key={videoIndex} className="relative group">
+                                  <video
+                                    src={video.preview}
+                                    className="w-full h-32 object-cover rounded border"
+                                    controls
+                                    preload="metadata"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeMedia(plantIndex, varietyIndex, videoIndex, 'videos')}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

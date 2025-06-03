@@ -1,12 +1,13 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Heart, MapPin, MessageSquare, Phone, Mail, Users, Plus, Minus } from "lucide-react";
+import { Heart, MapPin, MessageSquare, Phone, Mail, Users, Plus, Minus, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import Navigation from "@/components/Navigation";
 
 interface Variety {
@@ -21,6 +22,12 @@ interface Offering {
   varieties: Variety[];
 }
 
+interface SalesData {
+  month: string;
+  revenue: number;
+  orders: number;
+}
+
 interface Professional {
   id: number;
   name: string;
@@ -31,6 +38,7 @@ interface Professional {
   email: string;
   followers: number;
   offerings: Offering[];
+  salesData: SalesData[];
 }
 
 const ProfileDetail = () => {
@@ -38,6 +46,16 @@ const ProfileDetail = () => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(false);
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
+
+  // Mock sales data for the past 6 months
+  const mockSalesData: SalesData[] = [
+    { month: "Jan", revenue: 45000, orders: 23 },
+    { month: "Feb", revenue: 52000, orders: 28 },
+    { month: "Mar", revenue: 38000, orders: 19 },
+    { month: "Apr", revenue: 61000, orders: 34 },
+    { month: "May", revenue: 55000, orders: 31 },
+    { month: "Jun", revenue: 67000, orders: 38 }
+  ];
 
   // Mock data - in real app, fetch from API based on userId
   const professional: Professional = {
@@ -49,6 +67,7 @@ const ProfileDetail = () => {
     phone: "+91 98765 43210",
     email: "rajesh@greennursery.com",
     followers: 245,
+    salesData: mockSalesData,
     offerings: [
       {
         type: "plant",
@@ -76,6 +95,17 @@ const ProfileDetail = () => {
         ]
       }
     ]
+  };
+
+  const chartConfig = {
+    revenue: {
+      label: "Revenue (₹)",
+      color: "#16a34a",
+    },
+    orders: {
+      label: "Orders",
+      color: "#059669",
+    },
   };
 
   const handleMessage = () => {
@@ -177,6 +207,54 @@ const ProfileDetail = () => {
                     <span>{professional.followers} followers</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sales Performance Graph */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-green-800 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Sales Performance (Last 6 Months)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px]">
+              <BarChart data={professional.salesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="revenue" fill="var(--color-revenue)" name="Revenue (₹)" />
+              </BarChart>
+            </ChartContainer>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  ₹{professional.salesData.reduce((sum, data) => sum + data.revenue, 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Total Revenue</div>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {professional.salesData.reduce((sum, data) => sum + data.orders, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Total Orders</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">
+                  ₹{Math.round(professional.salesData.reduce((sum, data) => sum + data.revenue, 0) / professional.salesData.reduce((sum, data) => sum + data.orders, 0)).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Avg Order Value</div>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">
+                  {Math.round(professional.salesData.reduce((sum, data) => sum + data.orders, 0) / 6)}
+                </div>
+                <div className="text-sm text-gray-600">Avg Orders/Month</div>
               </div>
             </div>
           </CardContent>

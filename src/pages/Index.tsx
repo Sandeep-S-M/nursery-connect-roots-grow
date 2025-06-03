@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import ProductCard from "@/components/ProductCard";
+import WeatherDisplay from "@/components/WeatherDisplay";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,6 +87,11 @@ const Index = () => {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Weather Display */}
+        <div className="mb-8">
+          <WeatherDisplay />
         </div>
 
         {/* Regional Banner */}

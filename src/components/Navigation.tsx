@@ -4,10 +4,13 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Home, ShoppingBag, MessageSquare, BarChart3, Users, Bell, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import ProfileDropdown from "./ProfileDropdown";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -67,12 +70,19 @@ const Navigation = () => {
                 2
               </Badge>
             </Button>
-            <Link to="/login">
-              <Button variant="outline">Login</Button>
-            </Link>
-            <Link to="/signup">
-              <Button className="bg-green-600 hover:bg-green-700">Sign Up</Button>
-            </Link>
+            
+            {isAuthenticated ? (
+              <ProfileDropdown />
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="outline">Login</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="bg-green-600 hover:bg-green-700">Sign Up</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -117,14 +127,17 @@ const Navigation = () => {
                   </Link>
                 );
               })}
-              <div className="pt-4 border-t border-gray-200 space-y-2">
-                <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" className="w-full">Login</Button>
-                </Link>
-                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full bg-green-600 hover:bg-green-700">Sign Up</Button>
-                </Link>
-              </div>
+              
+              {!isAuthenticated && (
+                <div className="pt-4 border-t border-gray-200 space-y-2">
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full">Login</Button>
+                  </Link>
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                    <Button className="w-full bg-green-600 hover:bg-green-700">Sign Up</Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
 const Login = () => {
@@ -19,25 +20,19 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     // Email or phone validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[0-9]{10}$/;
-    
     if (!formData.emailOrPhone) {
       newErrors.emailOrPhone = "Email or phone number is required";
-    } else if (!emailRegex.test(formData.emailOrPhone) && !phoneRegex.test(formData.emailOrPhone)) {
-      newErrors.emailOrPhone = "Please enter a valid email or 10-digit phone number";
     }
 
     // Password validation
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -52,20 +47,32 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call - replace with actual authentication logic
+      // Simulate API call - replace with actual login logic
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock successful login
+      // Mock successful login with user data
+      const mockUser = {
+        id: "1",
+        firstName: "John",
+        lastName: "Doe",
+        emailOrPhone: formData.emailOrPhone,
+        profession: "Gardener",
+        profileImage: undefined,
+      };
+      
+      login(mockUser);
+      
       toast({
         title: "Login Successful",
-        description: "Welcome back!",
+        description: "Welcome back to NurseryConnect!",
       });
       
+      // Redirect to dashboard after successful login
       navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: "Invalid credentials. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -78,13 +85,6 @@ const Login = () => {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
     }
-  };
-
-  const handleSocialLogin = (provider: string) => {
-    toast({
-      title: "Coming Soon",
-      description: `${provider} login will be available soon!`,
-    });
   };
 
   return (
@@ -109,7 +109,7 @@ const Login = () => {
                 <Input
                   id="emailOrPhone"
                   type="text"
-                  placeholder="Enter email or 10-digit phone"
+                  placeholder="Enter email or phone"
                   value={formData.emailOrPhone}
                   onChange={(e) => handleInputChange("emailOrPhone", e.target.value)}
                   className={`pl-10 ${errors.emailOrPhone ? "border-red-500" : ""}`}
@@ -145,9 +145,9 @@ const Login = () => {
               )}
             </div>
 
-            <div className="flex justify-end">
-              <Link to="#" className="text-sm text-green-600 hover:text-green-800">
-                Forgot Password?
+            <div className="flex items-center justify-between">
+              <Link to="/forgot-password" className="text-sm text-green-600 hover:text-green-800">
+                Forgot password?
               </Link>
             </div>
 
@@ -156,52 +156,45 @@ const Login = () => {
               className="w-full bg-green-600 hover:bg-green-700"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Signing In..." : "Sign In"}
             </Button>
-          </form>
 
-          <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <span className="w-full border-t" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-gray-50 px-2 text-gray-500">Or continue with</span>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin("Google")}
-                className="w-full"
-              >
-                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            <div className="grid grid-cols-2 gap-4">
+              <Button variant="outline" className="w-full" disabled>
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <path
+                    d="m12.017 0c-6.624 0-12.017 5.393-12.017 12.017s5.393 12.017 12.017 12.017 12.017-5.393 12.017-12.017-5.393-12.017-12.017-12.017zm5.108 7.35c.146 1.548-.027 3.463-.027 3.463s-1.188.145-2.749.145c-1.16 0-2.236-.082-2.236-.082s.191-1.713.191-2.972c0-.82-.055-1.554-.055-1.554s1.077-.082 2.236-.082c1.561 0 2.749.145 2.749.145s-.173 1.915-.027 3.463z"
+                    fill="currentColor"
+                  />
                 </svg>
                 Google
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin("Apple")}
-                className="w-full"
-              >
-                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              <Button variant="outline" className="w-full" disabled>
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <path
+                    d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.042-3.441.219-.937 1.406-5.957 1.406-5.957s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.562-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.888-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z"
+                    fill="currentColor"
+                  />
                 </svg>
                 Apple
               </Button>
             </div>
-          </div>
+          </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{" "}
               <Link to="/signup" className="text-green-600 hover:text-green-800 font-medium">
-                Create a new account
+                Create account
               </Link>
             </p>
           </div>

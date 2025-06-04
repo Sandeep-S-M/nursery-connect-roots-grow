@@ -4,9 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, Briefcase } from "lucide-react";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const Signup = () => {
     emailOrPhone: "",
     password: "",
     confirmPassword: "",
+    profession: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -23,6 +25,15 @@ const Signup = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const professionOptions = [
+    "Gardener",
+    "Nursery Owner", 
+    "Home Gardener",
+    "Farmer",
+    "Buyer",
+    "Enthusiast"
+  ];
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -45,6 +56,11 @@ const Signup = () => {
       newErrors.emailOrPhone = "Email or phone number is required";
     } else if (!emailRegex.test(formData.emailOrPhone) && !phoneRegex.test(formData.emailOrPhone)) {
       newErrors.emailOrPhone = "Please enter a valid email or 10-digit phone number";
+    }
+
+    // Profession validation
+    if (!formData.profession) {
+      newErrors.profession = "Please select your profession";
     }
 
     // Password validation
@@ -79,11 +95,11 @@ const Signup = () => {
       // Mock successful registration
       toast({
         title: "Account Created Successfully",
-        description: "Welcome to NurseryConnect! You're now logged in.",
+        description: `Welcome to NurseryConnect as a ${formData.profession}! Please log in to continue.`,
       });
       
-      // Redirect to dashboard after successful signup
-      navigate("/dashboard");
+      // Redirect to login page after successful signup
+      navigate("/login");
     } catch (error) {
       toast({
         title: "Registration Failed",
@@ -170,6 +186,28 @@ const Signup = () => {
               </div>
               {errors.emailOrPhone && (
                 <p className="text-sm text-red-500">{errors.emailOrPhone}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="profession">Profession</Label>
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                <Select value={formData.profession} onValueChange={(value) => handleInputChange("profession", value)}>
+                  <SelectTrigger className={`pl-10 ${errors.profession ? "border-red-500" : ""}`}>
+                    <SelectValue placeholder="Select your profession" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {professionOptions.map((profession) => (
+                      <SelectItem key={profession} value={profession}>
+                        {profession}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {errors.profession && (
+                <p className="text-sm text-red-500">{errors.profession}</p>
               )}
             </div>
 

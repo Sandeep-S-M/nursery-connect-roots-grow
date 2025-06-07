@@ -37,8 +37,8 @@ const VoiceAssistant = () => {
 
   return (
     <>
-      {/* Main Voice Ball - Always Visible */}
-      <div className="fixed bottom-6 right-6 z-50">
+      {/* Main Voice Ball - Hidden until hover */}
+      <div className="fixed bottom-6 right-6 z-50 group">
         <Button
           onClick={() => setIsExpanded(!isExpanded)}
           className={`w-16 h-16 rounded-full ${
@@ -47,7 +47,7 @@ const VoiceAssistant = () => {
               : "bg-green-600 hover:bg-green-700"
           } shadow-lg transition-all duration-300 ${
             isListening ? "ring-4 ring-red-200" : "ring-4 ring-green-200"
-          }`}
+          } opacity-20 group-hover:opacity-100`}
         >
           {isListening ? (
             <MicOff className="h-8 w-8 text-white" />
